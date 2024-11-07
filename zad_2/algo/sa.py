@@ -5,7 +5,13 @@ from zad_2.fun.tools import find_new_best_positions
 def explore(current_solution, step_size=0.1):
     return current_solution + np.random.uniform(-step_size, step_size, len(current_solution))
 
-def sa(init_solution, objective_func, initial_temp, alpha, k, max_iter, step_size):
+def isOutBounds(solution, lb, ub, dim):
+    for i in range(dim):
+        if solution[i] < lb[i] or solution[i] > ub[i]:
+            return True
+    return False
+
+def sa(init_solution, objective_func, initial_temp, alpha, k, max_iter, step_size, lb, ub, dim):
     current_solution = np.array(init_solution)
     current_cost = objective_func(current_solution)
     temperature = initial_temp
@@ -16,6 +22,8 @@ def sa(init_solution, objective_func, initial_temp, alpha, k, max_iter, step_siz
     for i in range(max_iter):
         # krok 3
         new_solution = explore(current_solution, step_size)
+        while isOutBounds(new_solution, lb, ub, dim):
+            new_solution = explore(current_solution, step_size)
         new_cost = objective_func(new_solution)
         delta_cost = new_cost - current_cost
         boltzman = np.exp(-delta_cost*k / temperature)
