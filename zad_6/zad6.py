@@ -8,13 +8,12 @@ from collections import namedtuple
 Customer = namedtuple("Customer", ["index", "x", "y", "demand", "ready_time", "due_date", "service_time"])
 
 class Ant:
-    def __init__(self, depot, customers, vehicle_capacity, distance_matrix, num_vehicles, alpha=1.0, beta=2.0):
+    def __init__(self, depot, customers, vehicle_capacity, distance_matrix, alpha=1.0, beta=2.0):
         self.depot = depot
         self.customers = customers
         self.num_customers = len(customers)
         self.vehicle_capacity = vehicle_capacity
         self.distance_matrix = distance_matrix
-        self.num_vehicles = num_vehicles
         self.alpha = alpha  # siła feromonu
         self.beta = beta  # siła heurystyki
         self.route = []
@@ -79,22 +78,22 @@ def compute_distance_matrix(depot, customers):
     return dist_matrix
 
 
-def optimize(depot, customers, vehicle_capacity, num_vehicles, num_ants=10, max_iterations=100, evaporation_rate=0.5):
+def optimize(depot, customers, vehicle_capacity, num_ants=10, max_iterations=100, evaporation_rate=0.5):
     best_route = None
     best_distance = float('inf')
     num_customers = len(customers)
     pheromone_matrix = np.ones((num_customers + 1, num_customers + 1))
     distance_matrix = compute_distance_matrix(depot, customers)
     for iteration in range(max_iterations):
-        ants = [Ant(depot, customers, vehicle_capacity, distance_matrix, num_vehicles) for _ in range(num_ants)]
+        ants = [Ant(depot, customers, vehicle_capacity, distance_matrix) for _ in range(num_ants)]
         for ant in ants:
             ant.construct_solution(pheromone_matrix)
             if ant.total_distance < best_distance:
                 best_distance = ant.total_distance
                 best_route = ant.route
         pheromone_matrix = update_pheromones(pheromone_matrix, ants, evaporation_rate)
-        #print(f"Iteration {iteration + 1}, Best Distance: {best_distance}")
-    return best_route, best_distance*10
+        print(f"Iteration {iteration + 1}, Best Distance: {best_distance}")
+    return best_route, best_distance
 
 def update_pheromones(pheromone_matrix, ants, evaporation_rate):
     pheromone_matrix *= (1 - evaporation_rate)
@@ -124,16 +123,15 @@ def load_customers_from_file(file_path, customers_to_load=None):
 
 directory_path = 'data'
 files = os.listdir(directory_path)
-txt_files = [file for file in files if file.endswith('c105.csv')]
+txt_files = [file for file in files if file.endswith('r105.csv')]
 
 for file_name in txt_files:
     file_path = os.path.join(directory_path, file_name)
     customers_to_load = 100
     depot, customers = load_customers_from_file(file_path, customers_to_load)
     vehicle_capacity = 200 #25/50/75
-    num_vehicles = 2
 
-    best_route, best_distance = optimize(depot, customers, vehicle_capacity, num_vehicles)
+    best_route, best_distance = optimize(depot, customers, vehicle_capacity)
     print("File:", file_name)
     print("Best Route:", best_route)
     print("Best Distance:", best_distance)
